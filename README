@@ -1,0 +1,49 @@
+Nume: Ghenea Iustina
+Grupa: 332CC
+
+=========================== Tema 3 - SO ==============================
+
+Functia so_init_loader:
+	- segv_handler : setez handler-ul care se apeleaza in
+		urma producerii unui semnal SIGSEGV
+
+Functia init:
+	- calculeaza adresa de memoria si adresa fisierului
+	- returneaza indexul paginii, raportat la dimensiunea ei
+
+Functia map_address:
+	- calculeaza offset-ul la care se mapeaza adresa
+	- mapeaza adresa, in urma alinierii
+
+Functia read_page:
+	- se pozitioneaza la un offset fata de inceputul paginii
+		din file_descriptor si citeste din file_descriptor 
+
+Functia set_permissions:
+	- seteaza permisiunile o data ce memoria a fost mapata
+
+Functia segv_handler:
+	- parcurg toate segmentele
+	- daca adresa care a cauzat SIGSEGV se afla in unul din
+		segmente, se ruleaza handler-ul default
+	- verific daca adresa din campul si_code al structurii
+		este mapata;daca e egala cu SEGV_MAPPER aceasta 
+		este nemapata, si incerc sa o mapez; iar daca e 
+		egala cu SEGV_ACERR este mapata, insa permisiunile 
+		nu ii permit sa acceseze memoria, si rulez handler-ul
+		default pentru SIGSEGV
+	-se foloseste ALIGN_DOWN pt a alinia adresa si se apeleaza
+		map_address, unde se mapeaza in memorie o pagina 
+		cu flag-urile MAP_PRIVATE | MAP_FIXED, in cazul in
+		care file_size este mai mare decat mem_size (campuri
+		ale segmentului); in caz contrar se foloseste flag-ul
+		MAP_ANONYMOUS pentru ca datele devin 0, maparea nu se
+		mai bazeaza pe datele din fisier
+	- daca adresa de la sfarsitul fisierului este mai mica decat
+		adresa de la sfarsitul paginii, se copiaza in fisier
+		(adresa de sfarsit a fisierului - adresa aliniata) 
+		bytes; altfel, se copiaza dimensiunea unei pagini
+	- cursorul se pozitioneaza la offset-ul dorit cu ajutorul
+		apelului lseek, si se citeste in mem_addr
+	- se seteaza permisiunile pentru pagina mapata folosind
+		functia mprotect, cu permisiunile segmentului curent
